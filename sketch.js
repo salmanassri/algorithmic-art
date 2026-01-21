@@ -4,7 +4,7 @@
 // TODO: make everything a function of the width and height of the canvas (or screen?)
 // Use ratios instead of fixed values 
 // TODO: Pick a magic number
-// To make circle border look like it's vibrating, can randomize their size within a very small range
+// TODO: To make circle border look like it's vibrating, can randomize their size within a very small range
 
 
 let circles = []; // array to store circle data
