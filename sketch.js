@@ -51,7 +51,7 @@ function setup() {
 
 function initializeSketch() {
     // Create 25-35 glassy circles with random positions and sizes
-    let numCircles = random(25, 50);
+    let numCircles = random(25, 45);
 
     for (let i=0; i<numCircles; i++) {
         
@@ -66,19 +66,23 @@ function initializeSketch() {
             particleDesign: null, // this is set below
 
             // drift params
-            driftSeedX: random(1000),
-            driftSeedY: random(1000),
+            driftSeedX: random(1000), // random x-direction seed
+            driftSeedY: random(1000), // random y-direction seed
             driftSpeed: random(0.0015, 0.006),   // how fast noise evolves
-            driftAmp: random(0.15, 0.6), 
+            driftAmp: random(0.15, 0.6), // how much noise changes direction
 
             // for sound
             wasTouching: null,
-            lastHitFrame: -9999,
+            lastHitFrame: -9999, // to ensure first collision always plays a sound
             id: i, // circle index
 
              // For night mode only:
             hue: random(0, 360), // random hue for neon colors
-            nightStrokeWeight: random(2, 3) // random stroke thickness
+            nightStrokeWeight: random(2, 3), // random stroke thickness
+
+            // for glow effect in night mode
+            glowLayers: 40, 
+            glowSpread: 2.0, // how much to spread the glow layers
         };
 
 
@@ -92,8 +96,8 @@ function initializeSketch() {
             haloFuzzMaxRatio: random(0.4, 0.5),   // Relative to particle size (40-70%)
         };
         
-        // Create 1-3 particles inside this circle with identical design
-        const numParticles = floor(random(1, 5)); // 1, 2, or 3
+        // Create 1-4 particles inside this circle with identical design
+        const numParticles = floor(random(1, 5)); // 1, 2, 3, or 4
         for (let j = 0; j < numParticles; j++) {
             // randomize position inside the circle (polar coordinates)
             const angle = random(TWO_PI);
@@ -122,12 +126,13 @@ function initializeSketch() {
 }
 
 
+// Reference for drawing shapes with Perlin noise from The Coding Train: https://www.youtube.com/watch?v=ZI1dmHv3MeM
 function drawFuzzyParticle(p) {
-    let points = 50; // NOTE: more points = smoother edge
+    let points = 30; // more points = smoother edge
     let baseRadius = p.size / 5;
-    let t = frameCount * 0.01; // time value for animation
+    let t = frameCount * 0.01; // time value for animation, increases each frame to animate noise over time
 
-    // Calculate relative halo fuzz based on particle size
+    // calculate relative halo fuzz based on particle size
     let haloFuzzMin = p.size * p.design.haloFuzzMinRatio;
     let haloFuzzMax = p.size * p.design.haloFuzzMaxRatio;
 
@@ -164,7 +169,7 @@ function updateCircleDrift() {
     const t = frameCount;
   
     for (let c of circles) {
-      // smooth drift direction from perlin noise
+      // sample perlin noise to get smooth direction changes
       const vx = map(noise(c.driftSeedX, t * c.driftSpeed), 0, 1, -c.driftAmp, c.driftAmp);
       const vy = map(noise(c.driftSeedY, t * c.driftSpeed), 0, 1, -c.driftAmp, c.driftAmp);
   
@@ -172,9 +177,9 @@ function updateCircleDrift() {
       c.x += vx;
       c.y += vy;
   
-      // wrap around edges (so motion stays calm)
+      // wrap around edges (if a circle exists one edge, it wraps to the opposite side)
       const r = c.size / 2;
-      if (c.x < -r) c.x = width + r;
+      if (c.x < -r) c.x = width + r; // r accounts for circle's radius so it fully wraps
       if (c.x > width + r) c.x = -r;
       if (c.y < -r) c.y = height + r;
       if (c.y > height + r) c.y = -r;
@@ -189,7 +194,25 @@ function updateCircleDrift() {
     }
   }
 
-  function handleCircleCollisions() {
+  function drawGlow() {
+    for (let c of circles) {
+        // Draw multiple layers for glow effect
+        for (let i = 0; i < c.glowLayers; i++) {
+            const progress = i / c.glowLayers; // 0 (inner) to 1 (outer)
+            const alpha = map(progress, 0, 1, 50, 5); // fade out: from 50 to 5
+            const sizeFactor = map(progress, 0, 1, 1.0, c.glowSpread); // From normal size to larger glow
+            
+            // Draw glow layer
+            noFill();
+            stroke(c.hue, 100, 100, alpha);
+            strokeWeight(1);
+            ellipse(c.x, c.y, c.size * sizeFactor);
+        }
+    }
+}
+
+
+function handleCircleCollisions() {
     const minFramesBetweenHits = 30; // cooldown 30 frames to prevent rapid repeats
     const touchThreshold = 0.5; // touch threshold (within 0.5 pixels)
 
@@ -201,13 +224,14 @@ function updateCircleDrift() {
             const dx = b.x - a.x;
             const dy = b.y - a.y;
             const dist = sqrt(dx*dx + dy*dy);
-            const minDist = (a.size/2) + (b.size/2); // 
+            const minDist = (a.size/2) + (b.size/2); 
             
             // only trigger when exactly touching (within 0.5 pixels) - avoid deep overlap
             const isExactlyTouching = abs(dist - minDist) < touchThreshold;
             
             // if circles are touching, check cooldown for both cirles, skip if either is on cooldown still
             if (isExactlyTouching) {
+                // checks if circles a and b are less than 30 frames since last hit (to prevent rapid sounds)
                 if (frameCount - a.lastHitFrame < minFramesBetweenHits) continue;
                 if (frameCount - b.lastHitFrame < minFramesBetweenHits) continue;
                 
@@ -230,7 +254,7 @@ function playHitSound(a, b) {
     const maxSize = min(width, height) * 0.15; // 15% of canvas width or height
     
     // map size to playback rate (0.8x to 1.3x normal speed): smaller circles 1.3x higher pitch, larger circles 0.8x lower pitch
-    const rate = map(avgSize, minSize, maxSize, 1.3, 0.8);
+    const rate = map(avgSize, minSize, maxSize, 1.3, 0.7);
     
     const impact = 0.50; // to control volume of sound
     const volume = constrain(impact, 0.1, 1.5);
@@ -254,7 +278,8 @@ function draw() {
 
     updateCircleDrift();
     handleCircleCollisions();
-
+    if (isNightMode) drawGlow(); 
+    
     // Draw the glassy circles first
     for (let i=0; i < circles.length; i++) {
         
