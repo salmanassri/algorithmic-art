@@ -81,8 +81,8 @@ function initializeSketch() {
             nightStrokeWeight: random(2, 3), // random stroke thickness
 
             // for glow effect in night mode
-            glowLayers: 40, 
-            glowSpread: 2.0, // how much to spread the glow layers
+            glowLayers: 20, 
+            glowSpread: 1.5, // how much to spread the glow layers
         };
 
 

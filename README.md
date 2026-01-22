@@ -1,8 +1,9 @@
-# P5.js Project
+# Water Garden 
 
-A creative coding project using P5.js library.
-
+A generative art project inspired by public artwork at UdeM, depicting lily pads slowly drifting across a quiet pond, and created using p5.js library.
 ## Getting Started
+
+## How to Run The Program
 
 ### Option 1: Direct Opening (Simple)
 1. Open `index.html` in a web browser
