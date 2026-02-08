@@ -1,4 +1,4 @@
-// sketch.js - Glassy lilipads on water
+// sketch.js - Water Garden
 
 let magicNumber = 10;
 let circles = []; // array to store circle data
