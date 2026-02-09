@@ -9,10 +9,13 @@ const driftSpeed = 0.015; // speed of particle movement
 const driftAmp = 6.5;    // step size, how far the particle moves per frame
 const mousePullStrength = 3.0; // how strongly particles drift toward mouse when space is held
 
-function createParticle() {
+// function createParticle() {  // for one tree only
+function createParticle(x, y) {
   return {
-    x: random(width),
-    y: random(height),
+    // x: random(width), // if one tree only
+    // y: random(height), // if one tree only
+    x: x !== undefined ? x : random(width), // if multiple trees
+    y: y !== undefined ? y : random(height), // if multiple trees
     hue: 20,
     alpha: 70,
     radius: 15,
@@ -106,14 +109,28 @@ function draw() {
 
 
 function mousePressed() {
-  // freeze the seed particle at click position if it isn't frozen yet
-  if (!particles[0].frozen) {
-    particles[0].x = mouseX;
-    particles[0].y = mouseY;
-    particles[0].frozen = true;
-    particles[0].alpha = 255;
+
+    // if one tree only: 
+
+    // if (!particles[0].frozen) {
+    //   particles[0].x = mouseX;
+    //   particles[0].y = mouseY;
+    //   particles[0].frozen = true;
+    //   particles[0].alpha = 255;
+    // }
+
+
+// for multiple trees: find an unfrozen particle to make a new tree seed
+
+  for (let i = 0; i < particles.length; i++) {
+    if (!particles[i].frozen) {
+      particles[i].x = mouseX;
+      particles[i].y = mouseY;
+      particles[i].frozen = true;
+      particles[i].alpha = 255;
+    //   particles[i].hue = random() < 0.45 ? random(330, 360) : random(0, 40); // reds/pinks range
+      return;
+    }
   }
+
 }
-
-
-// Reference: https://www.youtube.com/watch?v=4_8a8JwXLp4
