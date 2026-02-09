@@ -5,14 +5,15 @@ let numParticles = 1100;
 let noiseScale = 3.0;
 let thresholdDistance = 17;
 // Motion drift properties
-const driftSpeed = 0.03;
-const driftAmp = 5.0;
+const driftSpeed = 0.015; // speed of particle movement
+const driftAmp = 6.5;    // step size, how far the particle moves per frame
 
 function createParticle() {
   return {
     x: random(width),
     y: random(height),
     hue: 20,
+    alpha: 77,
     radius: 15,
     frozen: false,
     parent: null, // remember its parent to keep its hue
@@ -23,7 +24,8 @@ function createParticle() {
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    colorMode(HSB, 360, 100, 100);
+    colorMode(HSB, 360, 100, 100, 100);
+    
   
     particles = new Array(numParticles);
     for (let i = 0; i < numParticles; i++) {
@@ -44,6 +46,7 @@ function checkFreezing(p) {
         p.frozen = true;
         p.parent = particles[i]; // save the particle's parent
         p.hue = (p.parent.hue + 5) % 360; // use the parent's hue + a little bit shift, and wrap around 360 to come around the colour wheel
+        p.alpha = 255; // fully opaque when frozen
         p.radius = p.parent.radius * 0.98; // decrease particle's radius by 2% of parent's radius
         return; // return to stop checking other particles
       }
@@ -75,7 +78,7 @@ function draw() {
 
         // display the particle
         noStroke(); // no outline
-        fill(p.hue, 100, 100);
+        fill(p.hue, 100, 100, p.alpha);
         circle(p.x, p.y, p.radius);
         if (p.parent != null) {
             // draw a line from this particle to its parent
@@ -92,6 +95,7 @@ function mousePressed() {
     particles[0].x = mouseX;
     particles[0].y = mouseY;
     particles[0].frozen = true;
+    particles[0].alpha = 255;
   }
 }
 
