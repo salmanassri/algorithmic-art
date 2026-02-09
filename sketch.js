@@ -80,8 +80,10 @@ function draw() {
               }
             }
 
-            p.x += vx + 0.26;
-            p.y += vy + 0.3;
+            // Perlin noise often averages slightly below 0.5, causing a bias toward negative (left/up) velocities. 
+            // that's why we added those small biases, to compensate.
+            p.x += vx + 0.26; // + bias affects horizontal movement of particles
+            p.y += vy + 0.3; // + bias affects vertical movement of particles & growth direction
         
             // wrap around screen
             p.x = (p.x + width) % width;
