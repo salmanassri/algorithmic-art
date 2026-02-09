@@ -7,13 +7,14 @@ let thresholdDistance = 17;
 // Motion drift properties
 const driftSpeed = 0.015; // speed of particle movement
 const driftAmp = 6.5;    // step size, how far the particle moves per frame
+const mousePullStrength = 3.0; // how strongly particles drift toward mouse when space is held
 
 function createParticle() {
   return {
     x: random(width),
     y: random(height),
     hue: 20,
-    alpha: 77,
+    alpha: 70,
     radius: 15,
     frozen: false,
     parent: null, // remember its parent to keep its hue
@@ -64,8 +65,21 @@ function draw() {
         if (!p.frozen) {
             // Perlin noise motion
             const t = frameCount * driftSpeed;
-            const vx = map(noise(p.driftSeedX, t), 0, 1, -driftAmp, driftAmp);
-            const vy = map(noise(p.driftSeedY, t), 0, 1, -driftAmp, driftAmp);
+            let vx = map(noise(p.driftSeedX, t), 0, 1, -driftAmp, driftAmp);
+            let vy = map(noise(p.driftSeedY, t), 0, 1, -driftAmp, driftAmp);
+
+            // when spacebar is held, drift particles toward mouse (stronger when closer)
+            if (keyIsPressed && key === ' ') {
+              const dx = mouseX - p.x;
+              const dy = mouseY - p.y;
+              const dist = sqrt(dx * dx + dy * dy);
+              if (dist > 1) {
+                const pull = mousePullStrength / (1 + dist / 150);
+                vx += (dx / dist) * pull;
+                vy += (dy / dist) * pull;
+              }
+            }
+
             p.x += vx + 0.26;
             p.y += vy + 0.3;
         
