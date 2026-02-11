@@ -1,4 +1,4 @@
-# Queit Bloom
+# Quiet Bloom
 
 Interactive visualization based on the Diffusion-Limited Aggregation algorithm using p5.js. Particles drift with Perlin noise and stick to a seed to form organic, branching structures.
 
