@@ -1,6 +1,6 @@
-# Diffusion-Limited Aggregation (DLA)
+# Queit Bloom
 
-Interactive visualization of the Diffusion-Limited Aggregation algorithm using p5.js. Particles drift with Perlin noise and stick to a seed to form organic, branching structures.
+Interactive visualization based on the Diffusion-Limited Aggregation algorithm using p5.js. Particles drift with Perlin noise and stick to a seed to form organic, branching structures.
 
 ## How to Run
 

@@ -9,11 +9,8 @@ const driftSpeed = 0.015; // speed of particle movement
 const driftAmp = 6.5;    // step size, how far the particle moves per frame
 const mousePullStrength = 3.0; // how strongly particles drift toward mouse when space is held
 
-// function createParticle() {  // for one tree only
 function createParticle(x, y) {
   return {
-    // x: random(width), // if one tree only
-    // y: random(height), // if one tree only
     x: x !== undefined ? x : random(width), // if multiple trees
     y: y !== undefined ? y : random(height), // if multiple trees
     hue: 20,
@@ -109,16 +106,6 @@ function draw() {
 
 
 function mousePressed() {
-
-    // if one tree only: 
-
-    // if (!particles[0].frozen) {
-    //   particles[0].x = mouseX;
-    //   particles[0].y = mouseY;
-    //   particles[0].frozen = true;
-    //   particles[0].alpha = 255;
-    // }
-
 
 // for multiple trees: find an unfrozen particle to make a new tree seed
 
