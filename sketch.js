@@ -1,5 +1,3 @@
-// Where Rain Becomes Roots
-
 let terrainPoints = [];
 let terrainPoints2 = [];
 let cloudX;
@@ -7,17 +5,24 @@ let cloudY;
 let rainDrops = [];
 let cloudScale = 1;
 let flowers = [];
-let flowerSpawChance = 0.25
+let flowerSpawChance = 0.2;
 const MIN_FLOWER_DIST = 25;
 const NUM_RAIN_DROPS = 80;
+let yearSelect;
+let selectedYear = 2015;
+let top10Countries = [];
 
 function preload() {
+    dataset = loadTable('data/Totals.csv', 'csv', 'header');
     jasmineImg = loadImage('flowers/jasmine.png');
 }
 
 function setup() {
   createCanvas(windowWidth - (windowWidth * 0.1), windowHeight - (windowHeight * 0.2));
-  
+
+  setupYearDropdown();
+  top10Countries = getTop10Countries(dataset, selectedYear);
+
   // Precompute terrain heights with noise for organic look
   terrainPoints = [];
 
@@ -27,7 +32,7 @@ function setup() {
   for (let i = 0; i <= segments; i++) {
     const x = (i / segments) * width;
     const n = noise(i * 0.03) * 50 + noise(i * 0.08 + 10) * 25;
-    const y = height - 30 - n;
+    const y = height - 100 - n;
     terrainPoints.push({ x, y });
   }
 
@@ -35,7 +40,7 @@ function setup() {
   for (let i = 0; i <= segments; i++) {
     const x = (i / segments) * width;
     const n = noise(i * 0.03 + 500) * 50 + noise(i * 0.08 + 510) * 25;
-    const y = height - 20 - n;
+    const y = height - 85 - n;
     terrainPoints2.push({ x, y });
   }
 
@@ -55,6 +60,46 @@ function setup() {
       speed: random(1, 2)
     });
   }
+}
+
+function setupYearDropdown() {
+    yearLabelP = createP('Year: ');
+    yearLabelP.style('color', 'white');
+    yearLabelP.position(80, 10);
+
+    yearSelect = createSelect();
+    yearSelect.position(130, 20);
+    yearSelect.style('width', '80px');
+    yearSelect.style('height', '30px');
+    for (let y = 2015; y <= 2025; y++) {
+        yearSelect.option(y);
+    }
+    yearSelect.selected(selectedYear);
+
+    selectedYear = parseInt(yearSelect.value(), 10);
+    yearLabelP.html('Year: ');
+
+    yearSelect.changed(() => {
+        selectedYear = parseInt(yearSelect.value(), 10);
+        top10Countries = getTop10Countries(dataset, selectedYear);
+        console.log(top10Countries);
+    });
+}
+
+function getTop10Countries(table,year) {
+    const col = year.toString();
+    const rows = table.getRows();
+    const data = [];
+    for (let i =0; i < rows.length; i++) {
+        const country = rows[i].getString('Country');
+        const value = rows[i].getString(col);
+        if (value === '' || value == null) continue;
+        const numImmigrants = parseInt(value, 10);
+        if (isNaN(numImmigrants)) continue;
+        data.push({ country, value: numImmigrants });
+    }
+    data.sort((a, b) => b.value - a.value);
+    return data.slice(0, 10);
 }
 
 function draw() {
