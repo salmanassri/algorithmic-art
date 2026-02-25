@@ -18,7 +18,7 @@ let flowerSpawnChance = 0.22;
 const MIN_FLOWER_DIST = 20;
 let canvasScaleFactor;
 
-// Country -> flower filename (no .png). Unmapped countries get a random flower.
+// Country -> flower image. Unmapped countries get a random flower
 const COUNTRY_FLOWERS = {
   'Philippines': 'jasmine',
   'Pakistan': 'jasmine',
@@ -46,6 +46,12 @@ function preload() {
 function setup() {
   createCanvas(windowWidth - (windowWidth * 0.1), windowHeight - (windowHeight * 0.2));
   canvasScaleFactor = width / 1100;
+
+  // title
+  const title = createElement('h2', 'Garden of Many Skies');
+  title.style('color', 'white');
+  title.position(width * 0.45, 10);
+  title.style('margin-top', '20px');
 
   setupYearDropdown();
   top10Countries = getTop10Countries(dataset, selectedYear);
