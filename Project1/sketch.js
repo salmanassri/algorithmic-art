@@ -1,4 +1,4 @@
-// sketch.js - Water Garden
+// sketch.js - Pond of Quiet Reflections
 
 let magicNumber = 10;
 let circles = []; // array to store circle data

@@ -1,4 +1,4 @@
-# Water Garden 
+# Pond of Quiet Reflections
 
 A generative art project inspired by public artwork at UdeM, depicting lily pads slowly drifting across a quiet pond, and created using p5.js library.
 
