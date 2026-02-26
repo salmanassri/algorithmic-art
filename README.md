@@ -16,7 +16,7 @@ The piece transforms raw displacement and migration data into a vibrant, growing
 
 ## Data
 
-- **Source:** [Open Canada – Permanent Residents by Country of Citizenship and Immigration Category](https://open.canada.ca/data/en/dataset/f7e5498e-0ad8-4417-85c9-9b8aff9b9eda/resource/d3821cd3-4dcf-4fe3-acc1-ebaef490a8b3)
+- **Source:** [Open Government - Canada – Permanent Residents by Country of Citizenship and Immigration Category](https://open.canada.ca/data/en/dataset/f7e5498e-0ad8-4417-85c9-9b8aff9b9eda/resource/d3821cd3-4dcf-4fe3-acc1-ebaef490a8b3)
 - **Related IRCC Datasets** [Permanent Residents – Monthly IRCC Updates](https://open.canada.ca/data/en/dataset/f7e5498e-0ad8-4417-85c9-9b8aff9b9eda)
 - **CSV File:** `data/Totals.csv` — yearly totals by country (2015–2025)
 
