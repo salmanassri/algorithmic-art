@@ -1,5 +1,5 @@
 let yearSelect;
-let selectedYear = 2024;
+let selectedYear = null;
 let top10Countries = [];
 let terrainPoints = [];
 let terrainPoints2 = [];
@@ -10,11 +10,11 @@ const CLOUD_SPEED_MIN = 0.3;
 const CLOUD_SPEED_MAX = 0.8;
 const CLOUD_WRAP_MARGIN_RATIO = 0.12; // fraction of width for spawn/wrap off-screen
 const MIN_CLOUD_SCALE = 0.6;
-const MAX_CLOUD_SCALE = 1.1;
+const MAX_CLOUD_SCALE = 1.3;
 const MIN_RAIN_DROPS = 15;
 const MAX_RAIN_DROPS = 100;
 let flowers = [];
-let flowerSpawnChance = 0.22;
+let flowerSpawnChance = 0.20;
 const MIN_FLOWER_DIST = 20;
 let canvasScaleFactor;
 
@@ -54,8 +54,6 @@ function setup() {
   title.style('margin-top', '20px');
 
   setupYearDropdown();
-  top10Countries = getTop10Countries(dataset, selectedYear);
-  syncCloudsToTop10();
 
   // Precompute terrain heights
   terrainPoints = [];
@@ -81,18 +79,24 @@ function setupYearDropdown() {
     yearSelect.position(130, 20);
     yearSelect.style('width', '80px');
     yearSelect.style('height', '30px');
+    yearSelect.option('Select', '');
     for (let y = 2015; y <= 2025; y++) {
-        yearSelect.option(y);
+      yearSelect.option(y);
     }
-    yearSelect.selected(selectedYear);
-
-    selectedYear = parseInt(yearSelect.value(), 10);
-    yearLabelP.html('Year: ');
+    yearSelect.selected('');
 
     yearSelect.changed(() => {
-      selectedYear = parseInt(yearSelect.value(), 10);
-      top10Countries = getTop10Countries(dataset, selectedYear);
-      syncCloudsToTop10();
+      const val = yearSelect.value();
+      if (val === '') {
+        selectedYear = null;
+        top10Countries = [];
+        flowers = [];
+        syncCloudsToTop10();
+      } else {
+        selectedYear = parseInt(val, 10);
+        top10Countries = getTop10Countries(dataset, selectedYear);
+        syncCloudsToTop10();
+      }
     });
 }
 
@@ -135,22 +139,25 @@ function syncCloudsToTop10() {
     * When value changes, clouds are added/removed/updated 
     */
     // if (!top10Countries || top10Countries.length === 0) {
-    // clouds = [];
-    // return;
+    //   clouds = [];
+    //   return;
     // }
 
     // get max value of current top 10, and map each country's value to scale and num of rain drops
     const maxValue = max(top10Countries.map(c => c.value));
+    const minValue = min(top10Countries.map(c => c.value));
+    // console.log('minValue', minValue, 'maxValue', maxValue);
     const cloudByCountry = {};
     for (const c of clouds) cloudByCountry[c.country] = c; // map cloud to country
 
     const nextClouds = [];
     for (let i = 0; i < top10Countries.length; i++) {
+        console.log('minValue', minValue, 'maxValue', maxValue);
         const { country, value } = top10Countries[i];
         // map the country’s value from [0, maxValue] to [MIN_CLOUD_SCALE, MAX_CLOUD_SCALE] 
-        const scale = map(value, 0, maxValue, MIN_CLOUD_SCALE, MAX_CLOUD_SCALE); 
+        const scale = map(value, minValue, maxValue, MIN_CLOUD_SCALE, MAX_CLOUD_SCALE); 
         // same mapping but to rain dropss
-        const numDrops = round(map(value, 0, maxValue, MIN_RAIN_DROPS, MAX_RAIN_DROPS)); 
+        const numDrops = round(map(value, minValue, maxValue, MIN_RAIN_DROPS, MAX_RAIN_DROPS)); 
 
         // if we already have a cloud for this country, update its values (since year changes)
         const existing = cloudByCountry[country]; 
@@ -209,7 +216,7 @@ function draw() {
     }
 }
 
-// TODO: make the cloud more intricate: https://www.youtube.com/watch?v=r5txidNXpFI
+// can make the cloud more intricate and animated: https://www.youtube.com/watch?v=r5txidNXpFI
 function drawCloud(cx, cy, scale) {
   const cloudScale = scale * canvasScaleFactor;
   noStroke();
@@ -228,35 +235,35 @@ function isMouseOverCloud(cloud) {
 
 function drawCloudTooltip(cloud) {
     const tooltipScaleFactor = canvasScaleFactor / 1.2;
-  const label = cloud.country + '\n' + cloud.value.toLocaleString();
-  const padding = 10 * tooltipScaleFactor;
-  const fontSize = 14 * tooltipScaleFactor;
-  textSize(fontSize);
-  textAlign(LEFT, TOP);
-  const countryWidth = textWidth(cloud.country);
-  const valueWidth = textWidth(cloud.value.toLocaleString());
-  const boxW = max(countryWidth, valueWidth) + padding * 2;
-  const boxH = fontSize * 2 + padding * 2;
-  const offset = 15 * tooltipScaleFactor;
-  const edgePad = 5 * tooltipScaleFactor;
-  let tooltipX = mouseX + offset;
-  let tooltipY = mouseY + offset;
-  if (tooltipX + boxW > width) tooltipX = mouseX - boxW - edgePad;
-  if (tooltipY + boxH > height) tooltipY = mouseY - boxH - edgePad;
-  if (tooltipX < 0) tooltipX = edgePad;
-  if (tooltipY < 0) tooltipY = edgePad;
-  fill(255, 255, 240);
-  stroke(80);
-  strokeWeight(1 * tooltipScaleFactor);
-  rect(tooltipX, tooltipY, boxW, boxH, 4 * tooltipScaleFactor);
-  noStroke();
-  fill(40);
-  text(label, tooltipX + padding, tooltipY + padding);
+    const label = cloud.country + '\n' + cloud.value.toLocaleString();
+    const padding = 10 * tooltipScaleFactor;
+    const fontSize = 14 * tooltipScaleFactor;
+    textSize(fontSize);
+    textAlign(LEFT, TOP);
+    const countryWidth = textWidth(cloud.country);
+    const valueWidth = textWidth(cloud.value.toLocaleString());
+    const boxW = max(countryWidth, valueWidth) + padding * 2;
+    const boxH = fontSize * 2 + padding * 2;
+    const offset = 15 * tooltipScaleFactor; // distance from cursor to tooltip
+    const edgePad = 5 * tooltipScaleFactor; // min space bt tooltip and edge of canvas (if too close we flip the tooltip)
+    let tooltipX = mouseX + offset;
+    let tooltipY = mouseY + offset;
+    if (tooltipX + boxW > width) tooltipX = mouseX - boxW - edgePad;
+    if (tooltipY + boxH > height) tooltipY = mouseY - boxH - edgePad;
+    if (tooltipX < 0) tooltipX = edgePad;
+    if (tooltipY < 0) tooltipY = edgePad;
+    fill(255, 255, 240);
+    stroke(80);
+    strokeWeight(1 * tooltipScaleFactor);
+    rect(tooltipX, tooltipY, boxW, boxH, 4 * tooltipScaleFactor);
+    noStroke();
+    fill(40);
+    text(label, tooltipX + padding, tooltipY + padding);
 }
 
 function updateAndDrawRain(cx, cy, rainCountry, rainDrops, scale) {
-  const spawnW = 50 * scale * canvasScaleFactor;
-  const spawnY = cy + 25 * scale * canvasScaleFactor;
+  const spawnW = 50 * scale * canvasScaleFactor; // range of drop position from center of cloud
+  const spawnY = cy + 25 * scale * canvasScaleFactor; // y position used when drop is re-spawned
 
   stroke(174, 194, 224);
   strokeWeight(2 * canvasScaleFactor);
@@ -266,7 +273,7 @@ function updateAndDrawRain(cx, cy, rainCountry, rainDrops, scale) {
     const terrainY = getTerrainYAt(d.x);
     if (d.y >= terrainY) {
       spawnFlowerAtImpact(d.x, terrainY, rainCountry);
-      d.x = cx + random(-spawnW, spawnW);
+      d.x = cx + random(-spawnW, spawnW); // range of drop position from center of cloud
       d.y = spawnY;
     } else if (d.y > height) {
       d.x = cx + random(-spawnW, spawnW);
@@ -281,8 +288,8 @@ function getTerrainYAt(x) {
     if (x <= 0) return points[0].y; //if x is off canvas, return the leftmost point's y
     if (x >= width) return points[points.length - 1].y; // if x is off canvas to the right, return the rightmost point's y
     const i = round(x / width * (points.length - 1)); // find the index of the point closest to the x value
-    const idx = constrain(i, 0, points.length - 1);
-    return points[idx].y;
+    // const idx = constrain(i, 0, points.length - 1); // clamp index i so it's never <0 or > points.length - 1
+    return points[i].y;
 }
 
 function getFlowerImage(country) {
@@ -295,7 +302,7 @@ function getFlowerImage(country) {
 function spawnFlowerAtImpact(impactX, terrainYAtImpact, country) {
   if (random() > flowerSpawnChance) return;
 
-  const xClamp = constrain(impactX, 15, width - 15);
+  const xClamp = constrain(impactX, 15, width - 15); // clamp flower's x position to keep on canvas with 15px margin
   const terrainTop = getTerrainYAt(xClamp);
   const y = random(terrainTop, height);
 
@@ -313,20 +320,20 @@ function drawTerrain(points1, points2) {
     stroke(45, 58, 38);
     strokeWeight(2);
     beginShape();
-    vertex(0, height);
+    vertex(0, height); // draw the leftmost point on the terrain
     for (const p of points1) {
-    vertex(p.x, p.y);
+        vertex(p.x, p.y); // draw each point on the terrain
     }
-    vertex(width, height);
+    vertex(width, height); // draw the rightmost point on the terrain
     endShape(CLOSE);
 
     // draw second green terrain
     fill(60, 75, 50);
     beginShape();
-    vertex(0, height);
+    vertex(0, height); // draw the leftmost point on the terrain
     for (const p of points2) {
-    vertex(p.x, p.y);
+        vertex(p.x, p.y); // draw each point on the terrain
     }
-    vertex(width, height);
+    vertex(width, height); // draw the rightmost point on the terrain
     endShape(CLOSE);
 }
