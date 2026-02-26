@@ -1,6 +1,6 @@
 # Garden of Many Skies
 
-Am interactive generative art piece visualizing immigration to Canada through a living garden metaphor.
+An interactive generative art piece visualizing immigration to Canada through a living garden metaphor.
 
 Each cloud drifting over the Canadian landscape represents a country of origin. As they pass, they release rain—the density of rainfall visualizing the number of immigrants arriving from that nation in a given year. Where the rain falls, flowers bloom, each in a unique colour representing its country of origin.
 
