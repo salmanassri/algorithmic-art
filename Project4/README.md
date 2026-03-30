@@ -4,6 +4,8 @@ An HTML slide deck for the paper presentation of *Open the Museum's Gates to Pir
 
 ## Viewing
 
+The presentation can be viewed [here](https://salmanassri.github.io/open_museum_gates_presentation.html/).
+
 Open `open_museum_gates_presentation.html` in a web browser (double-click the file or use File → Open).
 
 The deck needs a network connection for Google Fonts only.
