@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open the Museum's Gates to Pirates — ZKM 2018</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #181818;
+    --border: #222;
+    --green: #39ff8a;
+    --green-dim: #1a6b3e;
+    --amber: #ffb347;
+    --white: #f0ede8;
+    --muted: #666;
+    --accent-red: #ff4d4d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* Slides container */
+  .deck {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 5vh 8vw;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .slide.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* Slide-specific grids */
+  .slide.two-col {
+    display: none;
+    flex-direction: row;
+    gap: 6vw;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .slide.two-col.active { display: flex; }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 1.2rem; }
+
+  /* Nav bar */
+  nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 8vw;
+    background: linear-gradient(to top, #000 0%, transparent 100%);
+    z-index: 50;
+  }
+
+  .nav-controls { display: flex; gap: 1rem; align-items: center; }
+
+  .nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.4rem 1.2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { border-color: var(--green); color: var(--green); }
+
+  .slide-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    background: var(--green);
+    transition: width 0.4s ease;
+    z-index: 50;
+    box-shadow: 0 0 10px var(--green);
+  }
+
+  /* ─── Typography ─── */
+  .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.8rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    line-height: 1.05;
+    color: var(--white);
+    max-width: 800px;
+  }
+
+  h1 em {
+    color: var(--green);
+    font-style: italic;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    line-height: 1.1;
+    color: var(--white);
+  }
+
+  h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.05em;
+  }
+
+  p {
+    font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+    line-height: 1.7;
+    color: #bbb;
+    max-width: 60ch;
+    font-weight: 300;
+  }
+
+  p strong { color: var(--white); font-weight: 500; }
+  p em { color: var(--amber); font-style: italic; }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--green);
+    background: rgba(57,255,138,0.05);
+    border: 1px solid var(--green-dim);
+    padding: 0.15em 0.5em;
+    border-radius: 2px;
+  }
+
+  /* ─── Decorative elements ─── */
+  .rule {
+    width: 3rem;
+    height: 2px;
+    background: var(--green);
+    margin: 1rem 0;
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  .byline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 2rem;
+  }
+
+  /* ─── Slide 1: Title ─── */
+  #slide-1 { background: var(--bg); }
+  #slide-1 .backdrop {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 40%;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(57,255,138,0.02) 4px,
+      rgba(57,255,138,0.02) 5px
+    );
+    border-left: 1px solid #1a1a1a;
+  }
+  #slide-1 .big-glyph {
+    position: absolute;
+    right: 8vw; bottom: 8vh;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12rem;
+    font-weight: 700;
+    color: rgba(57,255,138,0.05);
+    line-height: 1;
+    letter-spacing: -0.05em;
+    user-select: none;
+  }
+  #slide-1 .tag-row {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.8rem;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .tag.green { border-color: var(--green-dim); color: var(--green); }
+
+  /* ─── Card style ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 1.2rem 1.5rem;
+    max-width: 52ch;
+  }
+
+  .card p { font-size: 0.9rem; }
+
+  /* ─── Quote ─── */
+  blockquote {
+    border-left: 3px solid var(--amber);
+    padding-left: 1.2rem;
+    margin: 0.5rem 0;
+  }
+  blockquote p {
+    color: var(--amber);
+    font-style: italic;
+    font-size: 1rem;
+  }
+  blockquote cite {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    display: block;
+    margin-top: 0.5rem;
+    font-style: normal;
+  }
+
+  /* ─── List ─── */
+  ul.styled { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+  ul.styled li {
+    display: flex; align-items: flex-start; gap: 0.7rem;
+    font-size: clamp(0.85rem, 1.3vw, 0.95rem);
+    color: #bbb;
+    line-height: 1.5;
+  }
+  ul.styled li::before {
+    content: '→';
+    color: var(--green);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    margin-top: 0.15em;
+  }
+  ul.styled li strong { color: var(--white); font-weight: 500; }
+
+  /* ─── Case study box ─── */
+  .case-header {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem;
+  }
+  .case-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green);
+    opacity: 0.3;
+    line-height: 1;
+  }
+
+  /* ─── Section divider slide ─── */
+  .section-slide {
+    background: linear-gradient(135deg, #0a0a0a 0%, #0d1a12 100%);
+  }
+  .section-slide h2 { font-size: clamp(2.5rem, 6vw, 5rem); }
+
+  /* ─── Conclusion grid ─── */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 900px;
+  }
+  .grid-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--green);
+    padding: 1.2rem;
+  }
+  .grid-card h3 { font-size: 0.75rem; margin-bottom: 0.6rem; }
+  .grid-card p { font-size: 0.82rem; max-width: none; }
+
+  /* ─── Terminal block ─── */
+  .terminal {
+    background: #050505;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--green);
+    max-width: 50ch;
+    line-height: 1.7;
+  }
+  .terminal .t-muted { color: var(--muted); }
+  .terminal .t-white { color: var(--white); }
+  .terminal .cursor {
+    display: inline-block;
+    width: 0.6em; height: 1em;
+    background: var(--green);
+    vertical-align: bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ─── Slide-in animation ─── */
+  .slide.active .anim-up {
+    animation: slideUp 0.5s ease forwards;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-up:nth-child(1) { animation-delay: 0.05s; }
+  .anim-up:nth-child(2) { animation-delay: 0.12s; }
+  .anim-up:nth-child(3) { animation-delay: 0.2s; }
+  .anim-up:nth-child(4) { animation-delay: 0.28s; }
+  .anim-up:nth-child(5) { animation-delay: 0.36s; }
+  .anim-up:nth-child(6) { animation-delay: 0.44s; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .slide.two-col.active { flex-direction: column; }
+    .grid-3 { grid-template-columns: 1fr; }
+    #slide-1 .big-glyph { display: none; }
+    #slide-1 .backdrop { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- ── SLIDE 1: Title ── -->
+  <div class="slide" id="slide-1">
+    <div class="backdrop"></div>
+    <div class="big-glyph">//</div>
+    <div style="position:relative;z-index:2;">
+      <div class="label anim-up">iPRES 2018 · Digital Preservation</div>
+      <h1 class="anim-up">Open the Museum's Gates<br>to <em>Pirates</em></h1>
+      <div class="rule anim-up"></div>
+      <p class="anim-up" style="max-width:48ch;">Hacking for the Sake of Digital Art Preservation</p>
+      <div class="tag-row anim-up">
+        <span class="tag green">Daniel Heiss</span>
+        <span class="tag green">Morgane Stricot</span>
+        <span class="tag green">Matthieu Vlaminck</span>
+        <span class="tag">ZKM · Center for Art and Media</span>
+        <span class="tag">Karlsruhe</span>
+      </div>
+      <div class="tag-row anim-up" style="margin-top:0.5rem;">
+        <span class="tag">piracy</span>
+        <span class="tag">folk preservation</span>
+        <span class="tag">API hacking</span>
+        <span class="tag">cracking</span>
+        <span class="tag">digital art</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 2: ZKM Introduction ── -->
+  <div class="slide two-col" id="slide-2">
+    <div class="col">
+      <div class="label anim-up">Who We Are</div>
+      <h2 class="anim-up">ZKM | Center for<br>Art and Media</h2>
+      <div class="rule anim-up"></div>
+      <ul class="styled anim-up">
+        <li>Founded in <strong>1989</strong> in Karlsruhe, Germany</li>
+        <li>Mission: <strong>extend the classical arts into the digital age</strong></li>
+        <li>Explores how media technologies transform <strong>artistic practice and public life</strong></li>
+        <li>Focuses on the relationship between <strong>art, technology, and society</strong></li>
+        <li>Organizes exhibitions, conducts research on <strong>media, digitization &amp; globalization</strong></li>
+      </ul>
+    </div>
+    <div class="col anim-up">
+      <div style="visibility:hidden;" class="label">spacer</div>
+      <div style="visibility:hidden;" class="label">spacer</div>
+      <div class="card" style="margin-bottom:1rem;">
+        <h3>Leadership</h3>
+        <p style="margin-top:0.5rem;">Founded under <strong>Heinrich Klotz</strong> (1935–1999). Directed by <strong>Peter Weibel</strong> from 1999 until his passing on 1 March 2023. Succeeded by British curator <strong>Alistair Hudson</strong> on 1 April 2023.</p>
+      </div>
+      <div class="terminal">
+        <span class="t-muted"># ZKM at a glance</span><br>
+        <span class="t-white">founded</span>    <span class="t-muted">→</span> 1989<br>
+        <span class="t-white">location</span>   <span class="t-muted">→</span> Karlsruhe, DE<br>
+        <span class="t-white">building</span>   <span class="t-muted">→</span> ex-munitions factory<br>
+        <span class="t-white">focus</span>      <span class="t-muted">→</span> art × media × tech<br>
+        <span class="t-white">collection</span> <span class="t-muted">→</span> 120 digital artworks<span class="cursor"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: The Problem ── -->
+  <div class="slide" id="slide-3-problem">
+    <div class="label anim-up">The Problem</div>
+    <h2 class="anim-up">When Digital Art<br><em style="color:var(--accent-red);font-style:normal;">Stops Working</em></h2>
+    <div class="rule anim-up" style="background:var(--accent-red);box-shadow:0 0 8px var(--accent-red);"></div>
+    <div style="display:flex;gap:3rem;flex-wrap:wrap;align-items:flex-start;" class="anim-up">
+      <div>
+        <p style="margin-bottom:1rem;">Digital artworks are fragile by nature — they depend on external tools and services that <strong>change, shut down, or disappear.</strong></p>
+        <ul class="styled">
+          <li><strong>Proprietary software</strong> — old engines, abandoned tools (e.g. Flash, specific rendering systems)</li>
+          <li><strong>APIs &amp; online services</strong> — platforms that change their terms, add authentication, or shut down entirely</li>
+          <li><strong>Libraries &amp; frameworks</strong> — dependencies that become obsolete or incompatible with modern systems</li>
+          <li style="border-left:2px solid var(--amber);padding-left:0.8rem;margin-left:0.2rem;">
+            <span style="color:var(--amber);">Real-world case:</span> <strong>Daniel Iregui</strong> (Iregular Studios) saw years of interactive work rendered inaccessible overnight when Adobe Flash was discontinued in December 2020 — a single corporate decision erasing an entire creative practice.
+          </li>
+        </ul>
+      </div>
+      <div class="terminal" style="align-self:center;">
+        <span class="t-muted"># Dependency failure modes</span><br>
+        <span style="color:var(--accent-red);">ERROR</span> <span class="t-white">Flash</span>       <span class="t-muted">→</span> EOL 2020<br>
+        <span style="color:var(--accent-red);">ERROR</span> <span class="t-white">Google API</span> <span class="t-muted">→</span> terms changed<br>
+        <span style="color:var(--accent-red);">ERROR</span> <span class="t-white">Protozoa</span>   <span class="t-muted">→</span> company closed<br>
+        <span style="color:var(--accent-red);">ERROR</span> <span class="t-white">Max FAT 3.5</span><span class="t-muted">→</span> copy-locked<br>
+        <span class="t-muted">───────────────────────</span><br>
+        <span class="t-white">artworks</span>             <span class="t-muted">→</span> <span style="color:var(--accent-red);">offline<span class="cursor"></span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OLD SLIDE 2 (now slide 4): Context ── -->
+  <div class="slide" id="slide-2">
+    <div class="label anim-up">Background</div>
+    <h2 class="anim-up">ZKM &amp; the<br>Digital Art Problem</h2>
+    <div class="rule anim-up"></div>
+    <div style="display:flex;gap:3rem;flex-wrap:wrap;" class="anim-up">
+      <div>
+        <ul class="styled">
+          <li><strong>120 digital artworks</strong> in ZKM's collection since 1989</li>
+          <li>No standardized preservation approaches existed when collecting began</li>
+          <li>Cross-disciplinary team: engineers, registrars, restorers, art historians</li>
+          <li><strong>Core challenge:</strong> obsolescence of formats/hardware, hardware-software interdependency, dependency on 3rd party sources</li>
+          <li><strong>Greater challenge after 1990s:</strong> smartphones, higher hardware-software dependency, no downgrading</li>
+        </ul>
+      </div>
+      <div class="terminal">
+        <span class="t-muted"># The problem space</span><br>
+        <span class="t-white">formats</span>    <span class="t-muted">→</span> obsolete<br>
+        <span class="t-white">hardware</span>   <span class="t-muted">→</span> discontinued<br>
+        <span class="t-white">software</span>   <span class="t-muted">→</span> unmaintained<br>
+        <span class="t-white">licenses</span>   <span class="t-muted">→</span> locked to dead companies<br>
+        <span class="t-white">APIs</span>       <span class="t-muted">→</span> terms changed<br>
+        <span class="t-white">solution</span>   <span class="t-muted">→</span> <span class="cursor"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: Preservation Strategy ── -->
+  <div class="slide" id="slide-3">
+    <div class="label anim-up">Strategy</div>
+    <h2 class="anim-up">Copies &amp; Proliferation</h2>
+    <div class="rule anim-up"></div>
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;" class="anim-up">
+      <div>
+        <p style="margin-bottom:1rem;">ZKM maintains artworks in their <strong>historical technological environment</strong> as long as possible — same computer model, same OS, same peripherals.</p>
+        <p style="margin-bottom:0.6rem; font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--accent-red);">⚠ However: high fragility</p>
+        <p style="margin-bottom:1.2rem; font-size:0.88rem; color:#999; max-width:54ch; border-left:2px solid #333; padding-left:0.9rem;">Limits other institutions that lack same resources → ZKM produces <strong style="color:var(--white);">updated version</strong> within newer technologies — as close to the original as possible.</p>
+        <blockquote>
+          <p>"Lots Of Copies Keep Stuff Safe"</p>
+          <cite>— LOCKSS, Stanford University Libraries</cite>
+        </blockquote>
+        <ul class="styled" style="margin-top:0.7rem;">
+          <li>Spare ready-to-run computers kept for every artwork</li>
+          <li>Create multiple identical, functional examples of entire hardware-software environment</li>
+          <li>Full backup tested <em>before</em> breakdown occurs</li>
+          <li>Allows easier gathering of missing information, smooth retrieval in case of breakdown during exhibition</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: Case Study 1 Divider ── -->
+  <div class="slide section-slide" id="slide-4">
+    <div class="label anim-up">Case Study 01</div>
+    <h2 class="anim-up" style="color:var(--green);">Cracking<br><em style="color:var(--white);font-style:italic;">Max FAT 3.5</em></h2>
+    <div class="rule anim-up"></div>
+    <p class="anim-up" style="max-width:44ch;"><em>Bar Code Hotel</em> by Perry Hoberman (1994) — and a copy-protection problem two decades old.</p>
+  </div>
+
+  <!-- ── SLIDE 5: Max FAT detail ── -->
+  <div class="slide two-col" id="slide-5">
+    <div class="col">
+      <div class="label anim-up">Case Study 01 · Detail</div>
+      <h2 class="anim-up" style="font-size:clamp(1.4rem,2.5vw,2rem);">Bar Code Hotel &amp;<br>the Missing Floppy</h2>
+      <p class="anim-up" style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; margin-bottom:0.3rem;">Perry Hoberman · 1994</p>
+      <div class="rule anim-up"></div>
+      <ul class="styled anim-up">
+        <li>Artwork's sound program: <span class="mono">Max FAT 3.5</span></li>
+        <li>Requires the <strong>original master floppy</strong> even when launched from a disk image</li>
+        <li>Cycling'74 no longer releases older unsupported versions</li>
+        <li>Community forum: users urged others to crack it rather than lose projects</li>
+      </ul>
+      <a href="https://vimeo.com/47016115" target="_blank"
+         style="display:inline-block; margin-top:1.2rem; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-decoration:none; border-bottom:1px solid #333; padding-bottom:2px; transition: color 0.2s, border-color 0.2s;"
+         onmouseover="this.style.color='var(--green)';this.style.borderColor='var(--green)'"
+         onmouseout="this.style.color='var(--muted)';this.style.borderColor='#333'">
+        ↗ vimeo.com/47016115 — Bar Code Hotel (archive)
+      </a>
+    </div>
+    <div class="col anim-up">
+      <figure style="margin-bottom:1rem;">
+        <img src="./max-fat-3.5.png"
+             alt="Max FAT 3.5 error message"
+             style="width:100%; max-width:420px; border:1px solid var(--border); display:block;">
+        <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-top:0.5rem; letter-spacing:0.05em;">
+          Screenshot of Max FAT 3.5 error message on Macintosh Classic 8
+        </figcaption>
+      </figure>
+      <div class="card">
+        <h3>The Solution: Folk Preservation</h3>
+        <p style="margin-top:0.6rem;">Used a <strong>patch created by snapCASE in 1996</strong> — an unauthorized corrective program that disables the floppy-check routine and replaces it with code that assumes a valid disk is present.</p>
+        <p style="margin-top:0.8rem;">The patch was still available and functional <em>more than 20 years later.</em></p>
+      </div>
+      <blockquote style="margin-top:1rem;">
+        <p>"Historically, piracy has helped guarantee the survival of important works of literature and art."</p>
+        <cite>— Kari Kraus, iConference 2008</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 6: Folk Preservation concept ── -->
+  <div class="slide" id="slide-6">
+    <div class="label anim-up">Theory</div>
+    <h2 class="anim-up">Folk Preservation</h2>
+    <div class="rule anim-up"></div>
+    <div class="card anim-up" style="margin-bottom:1.4rem;">
+      <p>Introduced by <strong>Kari Kraus</strong>: “preservation that is <em>amateur</em> rather than professional; <em>distributed</em> rather than centralized; and <em>unauthorized</em> rather than authorized.”</p>
+    </div>
+    <ul class="styled anim-up">
+      <li>Pirate communities (e.g. anonymous <strong>Xforce team</strong>) anticipate museums' future needs</li>
+      <li>They eliminate dependency issues <em>the moment</em> a third-party resource becomes available</li>
+      <li>Patches survive decades — far outlasting commercial support</li>
+      <li>Jon Ippolito (2010): "Unreliable archivists have kept their culture alive without any institutional mandate"</li>
+      <li>ZKM's stance: <strong>stand for piracy and folk preservation</strong></li>
+    </ul>
+  </div>
+
+  <!-- ── SLIDE 7: Case Study 2 Divider ── -->
+  <div class="slide section-slide" id="slide-7">
+    <div class="label anim-up">Case Study 02</div>
+    <h2 class="anim-up" style="color:var(--green);">Cracking a License<br><em style="color:var(--white);font-style:italic;">Remote Control</em></h2>
+    <div class="rule anim-up"></div>
+    <p class="anim-up" style="max-width:44ch;"><em>Remote Control</em> by Shane Cooper (1999) — a standalone license tied to a machine, and a company that no longer exists.</p>
+  </div>
+
+  <!-- ── SLIDE 8: Remote Control detail ── -->
+  <div class="slide two-col" id="slide-8">
+    <div class="col">
+      <div class="label anim-up">Case Study 02 · Detail</div>
+      <h2 class="anim-up" style="font-size:clamp(1.4rem,2.5vw,2rem);">Remote Control<br>by Shane Cooper</h2>
+      <div class="rule anim-up"></div>
+      <p class="anim-up">An online interactive installation (1999) featuring a computer-animated news anchorman that recombines online news into conditional/negative linguistic forms — questioning the meaning of messages.</p>
+      <ul class="styled anim-up" style="margin-top:0.8rem;">
+        <li>Uses <span class="mono">Alive!</span> by <strong>Protozoa</strong> — a standalone 3D rendering software</li>
+        <li>License locked to a single <strong>SGI O2</strong> via <span class="mono">FLEXlm</span> hostid fingerprint</li>
+        <li>Protozoa went out of business — no way to get a new license key</li>
+      </ul>
+    </div>
+    <div class="col anim-up">
+      <figure style="margin-bottom:1rem;">
+        <img src="./remote-control.png"
+             alt="Remote Control by Shane Cooper — virtual studio screenshot"
+             style="width:100%; max-width:420px; border:1px solid var(--border); display:block;">
+        <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-top:0.5rem; letter-spacing:0.05em;">
+          Virtual studio &amp; anchorman — Remote Control, Shane Cooper (1999)
+        </figcaption>
+      </figure>
+      <div class="card">
+        <p style="margin-top:0.6rem;">A script that <strong>emulates the original machine's lmhostid</strong> before Alive! checks it on boot — making the software believe it's running on the licensed machine.</p>
+        <p style="margin-top:0.8rem;">Built on successive contributions from programmers between <strong>1996–2009</strong>.</p>
+        <p style="margin-top:0.8rem;"><strong>Open-source</strong> and adaptable for any standalone-licensed software on SGI O2 and Indigo2.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 9: Case Study 3 Divider ── -->
+  <div class="slide section-slide" id="slide-9">
+    <div class="label anim-up">Case Study 03</div>
+    <h2 class="anim-up" style="color:var(--green);">Social Hacking<br><em style="color:var(--white);font-style:italic;">net.art generator</em></h2>
+    <div class="rule anim-up"></div>
+    <p class="anim-up" style="max-width:44ch;">Cornelia Sollfrank's net.art generator — when Google changed its API terms and killed a 20-year-old artwork.</p>
+  </div>
+
+  <!-- ── SLIDE 10: net.art generator detail ── -->
+  <div class="slide two-col" id="slide-10">
+    <div class="col">
+      <div class="label anim-up">Case Study 03 · Detail</div>
+      <h2 class="anim-up" style="font-size:clamp(1.4rem,2.5vw,2rem);">net.art generator<br>by Cornelia Sollfrank</h2>
+      <div class="rule anim-up"></div>
+      <p class="anim-up">A PERL program (1997) that collects and recombines internet material to create new websites and images — five versions, seven programmers over two decades.</p>
+      <ul class="styled anim-up" style="margin-top:0.8rem;">
+        <li>2015: Google introduced <strong>ID authentication</strong>, ending free unlimited API access</li>
+        <li>2018: Google discontinues special conditions for cultural organizations entirely</li>
+        <li>ZKM acquired version 5 in 2010 — directly affected</li>
+      </ul>
+      <a href="https://net.art-generator.com" target="_blank"
+         style="display:inline-block; margin-top:1.2rem; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-decoration:none; border-bottom:1px solid #333; padding-bottom:2px; transition: color 0.2s, border-color 0.2s;"
+         onmouseover="this.style.color='var(--green)';this.style.borderColor='var(--green)'"
+         onmouseout="this.style.color='var(--muted)';this.style.borderColor='#333'">
+        ↗ net.art-generator.com
+      </a>
+    </div>
+    <div class="col anim-up">
+      <div style="visibility:hidden;" class="label">spacer</div>
+      <div style="visibility:hidden;" class="label">spacer</div>
+      <div style="visibility:hidden;" class="label">spacer</div>
+      <div style="visibility:hidden;" class="label">spacer</div>
+      <div class="card">
+        <h3>crowdapi — Social Hacking</h3>
+        <p style="margin-top:0.6rem;">Developed by <strong>Winnie Soon &amp; Gerrit Bolez</strong>: automatically rotates Google ID keys after the 100-query limit is reached.</p>
+        <p style="margin-top:0.8rem;">Users <strong>donate their API key</strong> to keep the artwork alive — turning preservation into a collective act.</p>
+      </div>
+      <blockquote style="margin-top:1rem;">
+        <p>Mutations become "fuel for generating new political artistic production."</p>
+        <cite>— Cornelia Sollfrank</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 11: Conclusion ── -->
+  <div class="slide" id="slide-11">
+    <div class="label anim-up">Conclusion</div>
+    <h2 class="anim-up">Open the Gates</h2>
+    <div class="rule anim-up"></div>
+    <div class="grid-3 anim-up">
+      <div class="grid-card">
+        <h3>Share</h3>
+        <p>A dedicated communication hub bridging internet pirate resources and museum research — patches, blueprints, discussions — in the <strong>Copyleft spirit</strong>.</p>
+      </div>
+      <div class="grid-card">
+        <h3>Acknowledge</h3>
+        <p><strong>Amateur communities</strong> safeguarded cultural heritage for 20+ years — without institutional mandate or budget. Museums must acknowledge and <strong>collaborate</strong> with them.</p>
+      </div>
+      <div class="grid-card">
+        <h3>Think Distributed</h3>
+        <p>Commercial companies are <em>centralized</em>. Museums and hacker communities must be as <strong>distributed</strong> in response.</p>
+      </div>
+    </div>
+    <p class="anim-up" style="margin-top:1.4rem;max-width:65ch;">Social hacking solutions may help to think about power relationships between corporations and users. </p>
+  </div>
+
+  <!-- ── SLIDE 12: End ── -->
+  <div class="slide" id="slide-12">
+    <div class="label anim-up">End of Presentation</div>
+    <h1 class="anim-up">"Awareness from commercial<br>companies is <em>unlikely</em> to<br>increase — so we simply<br>deploy our strengths."</h1>
+    <div class="rule anim-up"></div>
+    <p class="anim-up" style="max-width:50ch;">Heiss, Stricot &amp; Vlaminck · ZKM Center for Art and Media · iPRES 2018</p>
+    <div class="byline anim-up" style="margin-top:1.5rem;">Questions?</div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← PREV</button>
+    <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">NEXT →</button>
+  </div>
+  <div style="display:flex;gap:1.5rem;align-items:center;">
+    <span class="slide-counter" id="counter">01 / 12</span>
+    <span class="slide-counter" id="slide-title-label" style="color:#444;"></span>
+  </div>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const titles = [
+    'Title', 'About ZKM', 'The Problem',
+    'Background', 'Preservation Strategy',
+    'Case 1: Max FAT 3.5', 'Case 1: Detail',
+    'Folk Preservation Theory',
+    'Case 2: Remote Control', 'Case 2: Detail',
+    'Case 3: net.art generator', 'Case 3: Detail',
+    'Conclusion', 'End'
+  ];
+
+  function showSlide(n) {
+    slides.forEach(s => { s.classList.remove('active'); });
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+
+    // Progress bar
+    document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+
+    // Counter
+    document.getElementById('counter').textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+
+    document.getElementById('slide-title-label').textContent = titles[current] || '';
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); changeSlide(1);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); changeSlide(-1);
+    }
+  });
+
+  // Touch/swipe
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) changeSlide(dx < 0 ? 1 : -1);
+  });
+
+  showSlide(0);
+</script>
+</body>
+</html>
